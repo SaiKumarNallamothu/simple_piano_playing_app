@@ -18,6 +18,7 @@ class _PianoScreenState extends State<PianoScreen> {
   bool _showLabels = true;
   bool _isAudioReady = false;
   double _keyWidth = 55.0; // Adjustable key size
+  int? _selectedLockedOctave; // Null when unlocked (scrollable), 0-7 when locked to specific octave
 
   late List<NoteModel> _all88Notes;
   late ScrollController _singleRowScrollController;
@@ -51,8 +52,15 @@ class _PianoScreenState extends State<PianoScreen> {
     super.dispose();
   }
 
-  void _jumpToOctave(int octave) {
-    // Find first white key in target octave
+  void _selectOctaveAndLock(int octave) {
+    setState(() {
+      if (_selectedLockedOctave == octave) {
+        _selectedLockedOctave = null; // Toggle unlock when tapped again
+      } else {
+        _selectedLockedOctave = octave; // Lock to selected octave
+      }
+    });
+
     final whiteNotes = NoteModel.getWhiteNotesOnly();
     final index = whiteNotes.indexWhere((n) => n.octave == octave);
     if (index != -1 && _singleRowScrollController.hasClients) {
@@ -144,36 +152,91 @@ class _PianoScreenState extends State<PianoScreen> {
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Row(
                         children: [
-                          const Text(
-                            'Jump Octave:',
-                            style: TextStyle(fontSize: 11, color: Colors.white54),
+                          Icon(
+                            _selectedLockedOctave != null ? Icons.lock_rounded : Icons.lock_open_rounded,
+                            size: 14,
+                            color: _selectedLockedOctave != null ? const Color(0xFF818CF8) : Colors.white54,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _selectedLockedOctave != null ? 'Octave Locked:' : 'Select Octave:',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: _selectedLockedOctave != null ? FontWeight.bold : FontWeight.normal,
+                              color: _selectedLockedOctave != null ? const Color(0xFF818CF8) : Colors.white54,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Expanded(
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
-                                children: List.generate(8, (i) {
-                                  final octave = i;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 4.0),
-                                    child: InkWell(
-                                      onTap: () => _jumpToOctave(octave),
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF23293E),
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        child: Text(
-                                          'Oct $octave',
-                                          style: const TextStyle(fontSize: 10, color: Colors.white70),
+                                children: [
+                                  // Unlock All Button
+                                  if (_selectedLockedOctave != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 4.0),
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedLockedOctave = null;
+                                          });
+                                        },
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEF4444),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'Unlock Scroll',
+                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  );
-                                }),
+
+                                  ...List.generate(8, (i) {
+                                    final octave = i;
+                                    final isLocked = _selectedLockedOctave == octave;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 4.0),
+                                      child: InkWell(
+                                        onTap: () => _selectOctaveAndLock(octave),
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 150),
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: isLocked ? const Color(0xFF6366F1) : const Color(0xFF23293E),
+                                            borderRadius: BorderRadius.circular(4),
+                                            border: Border.all(
+                                              color: isLocked ? const Color(0xFF818CF8) : Colors.transparent,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (isLocked) ...[
+                                                const Icon(Icons.lock_rounded, size: 10, color: Colors.white),
+                                                const SizedBox(width: 2),
+                                              ],
+                                              Text(
+                                                'Oct $octave',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: isLocked ? FontWeight.bold : FontWeight.normal,
+                                                  color: isLocked ? Colors.white : Colors.white70,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ],
                               ),
                             ),
                           ),
@@ -233,6 +296,7 @@ class _PianoScreenState extends State<PianoScreen> {
           whiteKeyWidth: _keyWidth,
           showLabels: _showLabels,
           scrollController: _singleRowScrollController,
+          isScrollable: _selectedLockedOctave == null,
         );
 
       case KeyboardMode.doubleRow:

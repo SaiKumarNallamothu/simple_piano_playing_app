@@ -9,6 +9,7 @@ class PianoKeyboardRow extends StatefulWidget {
   final bool showLabels;
   final ScrollController? scrollController;
   final bool isFlipped; // Support Dual Players 180° orientation
+  final bool isScrollable; // Lock keyboard scrolling when an octave is selected
 
   const PianoKeyboardRow({
     super.key,
@@ -17,6 +18,7 @@ class PianoKeyboardRow extends StatefulWidget {
     this.showLabels = true,
     this.scrollController,
     this.isFlipped = false,
+    this.isScrollable = true,
   });
 
   @override
@@ -162,7 +164,7 @@ class _PianoKeyboardRowState extends State<PianoKeyboardRow> {
           child: SingleChildScrollView(
             controller: _activeController,
             scrollDirection: Axis.horizontal,
-            physics: const ClampingScrollPhysics(),
+            physics: widget.isScrollable ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
             child: SizedBox(
               width: totalWidth,
               height: height,
