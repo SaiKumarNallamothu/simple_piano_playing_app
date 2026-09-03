@@ -1,6 +1,5 @@
-import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 import '../models/note.dart';
 
 class PianoAudioService {
@@ -8,66 +7,57 @@ class PianoAudioService {
 
   PianoAudioService._internal();
 
-  // Pool of AudioPlayers for polyphonic zero-latency playback
-  final Map<String, List<AudioPlayer>> _playersPool = {};
-  final Map<String, int> _poolIndex = {};
-
+  final Map<String, AudioSource> _audioSources = {};
   bool _isInitialized = false;
 
   Future<void> init() async {
     if (_isInitialized) return;
 
-    final notes = [
-      ...NoteModel.getOctave(3),
-      ...NoteModel.getOctave(4),
-      const NoteModel(id: 'c5', name: 'C', octave: 5, type: KeyType.white, soundAsset: 'sounds/c5.wav'),
-    ];
+    try {
+      await SoLoud.instance.init();
+      final allNotes = NoteModel.getAll88Notes();
 
-    for (final note in notes) {
-      _playersPool[note.id] = [];
-      _poolIndex[note.id] = 0;
-
-      // Allocate 3 players per note to support rapid re-triggering & polyphony
-      for (int i = 0; i < 3; i++) {
-        final player = AudioPlayer();
+      for (final note in allNotes) {
         try {
-          await player.setSource(AssetSource(note.soundAsset));
-          await player.setVolume(1.0);
+          final source = await SoLoud.instance.loadAsset('assets/${note.soundAsset}');
+          _audioSources[note.id] = source;
         } catch (e) {
-          debugPrint('Error pre-loading asset ${note.soundAsset}: $e');
+          debugPrint('Error loading audio asset ${note.soundAsset}: $e');
         }
-        _playersPool[note.id]!.add(player);
       }
-    }
 
-    _isInitialized = true;
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('SoLoud initialization error: $e');
+    }
   }
 
   void playNote(String noteId) {
-    final pool = _playersPool[noteId];
-    if (pool == null || pool.isEmpty) return;
+    final source = _audioSources[noteId];
+    if (source == null) return;
 
-    final index = _poolIndex[noteId]! % pool.length;
-    _poolIndex[noteId] = index + 1;
+    try {
+      SoLoud.instance.play(source);
+    } catch (e) {
+      debugPrint('Error playing note $noteId: $e');
+    }
+  }
 
-    final player = pool[index];
-    
-    // Play with source seeking for rapid low-latency response
-    player.seek(Duration.zero).then((_) {
-      player.resume();
-    }).catchError((_) {
-      player.play(AssetSource('sounds/$noteId.wav'));
-    });
+  void stopNote(String noteId) {
+    // SoLoud handles voice decay smoothly automatically
   }
 
   void dispose() {
-    for (final pool in _playersPool.values) {
-      for (final player in pool) {
-        player.dispose();
+    if (!_isInitialized) return;
+    try {
+      for (final source in _audioSources.values) {
+        SoLoud.instance.disposeSource(source);
       }
+      _audioSources.clear();
+      SoLoud.instance.deinit();
+    } catch (e) {
+      debugPrint('Error disposing SoLoud: $e');
     }
-    _playersPool.clear();
-    _poolIndex.clear();
     _isInitialized = false;
   }
 }

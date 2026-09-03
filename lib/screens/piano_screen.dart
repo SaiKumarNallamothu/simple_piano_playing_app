@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import '../widgets/piano_keyboard.dart';
+import '../models/note.dart';
 import '../audio/piano_audio.dart';
+import '../widgets/piano_keyboard_row.dart';
+import '../widgets/chords_keyboard_view.dart';
+
+enum KeyboardMode { singleRow, doubleRow, dualPlayers, chords }
 
 class PianoScreen extends StatefulWidget {
   const PianoScreen({super.key});
@@ -10,14 +14,23 @@ class PianoScreen extends StatefulWidget {
 }
 
 class _PianoScreenState extends State<PianoScreen> {
-  int _octavesCount = 1; // 1 or 2 octaves
-  int _startOctave = 4; // 3 or 4
+  KeyboardMode _currentMode = KeyboardMode.singleRow;
   bool _showLabels = true;
   bool _isAudioReady = false;
+  double _keyWidth = 55.0; // Adjustable key size
+
+  late List<NoteModel> _all88Notes;
+  late ScrollController _singleRowScrollController;
+  late ScrollController _doubleRowTopScrollController;
+  late ScrollController _doubleRowBottomScrollController;
 
   @override
   void initState() {
     super.initState();
+    _all88Notes = NoteModel.getAll88Notes();
+    _singleRowScrollController = ScrollController(initialScrollOffset: 1200); // Start near Middle C (C4)
+    _doubleRowTopScrollController = ScrollController(initialScrollOffset: 1500);
+    _doubleRowBottomScrollController = ScrollController(initialScrollOffset: 600);
     _initAudio();
   }
 
@@ -31,15 +44,37 @@ class _PianoScreenState extends State<PianoScreen> {
   }
 
   @override
+  void dispose() {
+    _singleRowScrollController.dispose();
+    _doubleRowTopScrollController.dispose();
+    _doubleRowBottomScrollController.dispose();
+    super.dispose();
+  }
+
+  void _jumpToOctave(int octave) {
+    // Find first white key in target octave
+    final whiteNotes = NoteModel.getWhiteNotesOnly();
+    final index = whiteNotes.indexWhere((n) => n.octave == octave);
+    if (index != -1 && _singleRowScrollController.hasClients) {
+      final targetOffset = index * _keyWidth;
+      _singleRowScrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A), // Deep dark studio background
+      backgroundColor: const Color(0xFF0F111A),
       body: SafeArea(
         child: Column(
           children: [
             // Top App Bar / Controls Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: const BoxDecoration(
                 color: Color(0xFF161A29),
                 boxShadow: [
@@ -50,93 +85,132 @@ class _PianoScreenState extends State<PianoScreen> {
                   )
                 ],
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  // App Title & Icon
-                  const Icon(
-                    Icons.music_note_rounded,
-                    color: Color(0xFF818CF8),
-                    size: 22,
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Simple Piano',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const Spacer(),
-
-                  // Action controls packed nicely
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Octave Count Switcher
-                        _buildHeaderButton(
-                          label: _octavesCount == 1 ? '1 Octave' : '2 Octaves',
-                          icon: Icons.splitscreen_rounded,
-                          onPressed: () {
-                            setState(() {
-                              _octavesCount = _octavesCount == 1 ? 2 : 1;
-                            });
-                          },
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.music_note_rounded,
+                        color: Color(0xFF818CF8),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '88-Key Piano',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                        const SizedBox(width: 6),
+                      ),
+                      const Spacer(),
 
-                        // Octave Range Selector
-                        if (_octavesCount == 1) ...[
-                          _buildHeaderButton(
-                            label: 'Oct C$_startOctave',
-                            icon: Icons.tune_rounded,
-                            onPressed: () {
-                              setState(() {
-                                _startOctave = _startOctave == 4 ? 3 : 4;
-                              });
-                            },
+                      // Keyboard Mode Selector Tabs
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildModeTab('Single', KeyboardMode.singleRow),
+                            _buildModeTab('Double', KeyboardMode.doubleRow),
+                            _buildModeTab('Dual Player', KeyboardMode.dualPlayers),
+                            _buildModeTab('Chords', KeyboardMode.chords),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      // Toggle Labels Button
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(6),
+                        icon: Icon(
+                          _showLabels ? Icons.subtitles_rounded : Icons.subtitles_off_rounded,
+                          color: _showLabels ? const Color(0xFF818CF8) : Colors.white38,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _showLabels = !_showLabels;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                  // Octave Navigator & Key Width Slider Bar (for Single Row Mode)
+                  if (_currentMode == KeyboardMode.singleRow)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6.0),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Jump Octave:',
+                            style: TextStyle(fontSize: 11, color: Colors.white54),
                           ),
                           const SizedBox(width: 6),
-                        ],
-
-                        // Toggle Labels
-                        IconButton(
-                          constraints: const BoxConstraints(),
-                          padding: const EdgeInsets.all(6),
-                          icon: Icon(
-                            _showLabels ? Icons.subtitles_rounded : Icons.subtitles_off_rounded,
-                            color: _showLabels ? const Color(0xFF818CF8) : Colors.white38,
-                            size: 20,
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: List.generate(8, (i) {
+                                  final octave = i;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(right: 4.0),
+                                    child: InkWell(
+                                      onTap: () => _jumpToOctave(octave),
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF23293E),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          'Oct $octave',
+                                          style: const TextStyle(fontSize: 10, color: Colors.white70),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
                           ),
-                          tooltip: 'Toggle Key Labels',
-                          onPressed: () {
-                            setState(() {
-                              _showLabels = !_showLabels;
-                            });
-                          },
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+
+                          // Key Width Slider
+                          const Icon(Icons.zoom_out, size: 14, color: Colors.white54),
+                          SizedBox(
+                            width: 80,
+                            child: Slider(
+                              value: _keyWidth,
+                              min: 40.0,
+                              max: 80.0,
+                              activeColor: const Color(0xFF818CF8),
+                              onChanged: (val) {
+                                setState(() {
+                                  _keyWidth = val;
+                                });
+                              },
+                            ),
+                          ),
+                          const Icon(Icons.zoom_in, size: 14, color: Colors.white54),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
 
-            // Main Visual Piano Surface
+            // Main View Surface
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                padding: const EdgeInsets.all(4.0),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   child: _isAudioReady
-                      ? PianoKeyboard(
-                          octavesCount: _octavesCount,
-                          startOctave: _octavesCount == 2 ? 3 : _startOctave,
-                          showLabels: _showLabels,
-                        )
+                      ? _buildActiveModeView()
                       : const Center(
                           child: CircularProgressIndicator(
                             color: Color(0xFF818CF8),
@@ -151,33 +225,106 @@ class _PianoScreenState extends State<PianoScreen> {
     );
   }
 
-  Widget _buildHeaderButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      height: 34,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF23293E),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: TextButton.icon(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        onPressed: onPressed,
-        icon: Icon(icon, size: 14, color: const Color(0xFFA5B4FC)),
-        label: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+  Widget _buildActiveModeView() {
+    switch (_currentMode) {
+      case KeyboardMode.singleRow:
+        return PianoKeyboardRow(
+          notes: _all88Notes,
+          whiteKeyWidth: _keyWidth,
+          showLabels: _showLabels,
+          scrollController: _singleRowScrollController,
+        );
+
+      case KeyboardMode.doubleRow:
+        return Column(
+          children: [
+            // Top Row
+            Expanded(
+              child: PianoKeyboardRow(
+                notes: _all88Notes,
+                whiteKeyWidth: _keyWidth,
+                showLabels: _showLabels,
+                scrollController: _doubleRowTopScrollController,
+              ),
+            ),
+            const Divider(height: 4, thickness: 4, color: Color(0xFF0F111A)),
+            // Bottom Row
+            Expanded(
+              child: PianoKeyboardRow(
+                notes: _all88Notes,
+                whiteKeyWidth: _keyWidth,
+                showLabels: _showLabels,
+                scrollController: _doubleRowBottomScrollController,
+              ),
+            ),
+          ],
+        );
+
+      case KeyboardMode.dualPlayers:
+        return Column(
+          children: [
+            // Player 2 (Top - Flipped 180°)
+            Expanded(
+              child: PianoKeyboardRow(
+                notes: _all88Notes,
+                whiteKeyWidth: _keyWidth,
+                showLabels: _showLabels,
+                isFlipped: true,
+              ),
+            ),
+            Container(
+              height: 24,
+              color: const Color(0xFF1E293B),
+              alignment: Alignment.center,
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text('▲ Player 2', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF818CF8))),
+                  Text('Player 1 ▼', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8))),
+                ],
+              ),
+            ),
+            // Player 1 (Bottom - Normal)
+            Expanded(
+              child: PianoKeyboardRow(
+                notes: _all88Notes,
+                whiteKeyWidth: _keyWidth,
+                showLabels: _showLabels,
+                isFlipped: false,
+              ),
+            ),
+          ],
+        );
+
+      case KeyboardMode.chords:
+        return ChordsKeyboardView(showLabels: _showLabels);
+    }
+  }
+
+  Widget _buildModeTab(String title, KeyboardMode mode) {
+    final isSelected = _currentMode == mode;
+    return Padding(
+      padding: const EdgeInsets.only(right: 4.0),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _currentMode = mode;
+          });
+        },
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF6366F1) : const Color(0xFF23293E),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.white : Colors.white70,
+            ),
           ),
         ),
       ),

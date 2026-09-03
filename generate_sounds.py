@@ -3,11 +3,11 @@ import math
 import struct
 import os
 
-def generate_piano_note(filename, frequency, duration=2.5, sample_rate=44100):
+def generate_piano_note(filename, frequency, duration=2.0, sample_rate=44100):
     num_samples = int(sample_rate * duration)
     wav_file = wave.open(filename, 'w')
-    wav_file.setnchannels(2) # Stereo for max mobile player compatibility
-    wav_file.setsampwidth(2) # 16-bit PCM
+    wav_file.setnchannels(1) # Mono is standard for Android SoundPool / MediaPlayer
+    wav_file.setsampwidth(2) # 16-bit PCM (signed integer LE)
     wav_file.setframerate(sample_rate)
     
     data = bytearray()
@@ -21,19 +21,15 @@ def generate_piano_note(filename, frequency, duration=2.5, sample_rate=44100):
         else:
             envelope = math.exp(-2.5 * (t - 0.005))
             
-        # Rich harmonic tones
-        val = 0.55 * math.sin(2 * math.pi * frequency * t)
-        val += 0.25 * math.sin(2 * math.pi * frequency * 2 * t) * math.exp(-0.8 * t)
-        val += 0.12 * math.sin(2 * math.pi * frequency * 3 * t) * math.exp(-1.5 * t)
-        val += 0.08 * math.sin(2 * math.pi * frequency * 4 * t) * math.exp(-2.5 * t)
+        # Standard piano harmonics blend
+        val = 0.60 * math.sin(2 * math.pi * frequency * t)
+        val += 0.25 * math.sin(2 * math.pi * frequency * 2 * t) * math.exp(-1.0 * t)
+        val += 0.10 * math.sin(2 * math.pi * frequency * 3 * t) * math.exp(-2.0 * t)
         
-        sample_val = val * envelope * 28000.0
+        sample_val = val * envelope * 24000.0
         sample_val = max(-32767, min(32767, int(sample_val)))
         
-        # Pack left and right channels
-        packed = struct.pack('<h', sample_val)
-        data.extend(packed)
-        data.extend(packed)
+        data.extend(struct.pack('<h', sample_val))
         
     wav_file.writeframes(data)
     wav_file.close()
@@ -55,8 +51,11 @@ output_dir = 'assets/sounds'
 os.makedirs(output_dir, exist_ok=True)
 
 for note, freq in notes_freq.items():
-    filepath = os.path.join(output_dir, f'{note}.wav')
-    print(f"Generating stereo {filepath} ({freq} Hz)...")
-    generate_piano_note(filepath, freq)
+    wav_path = os.path.join(output_dir, f'{note}.wav')
+    generate_piano_note(wav_path, freq)
+    
+    # Convert WAV to MP3 using macOS afconvert tool for 100% Android MediaPlayer compatibility
+    mp3_path = os.path.join(output_dir, f'{note}.mp3')
+    os.system(f"afconvert -f 'NEOF' -d '.mp3' '{wav_path}' '{mp3_path}' 2>/dev/null || afconvert -f 'MP4F' -d 'aac' '{wav_path}' '{mp3_path}' 2>/dev/null")
 
-print("Audio stereo wave generation complete!")
+print("Generated WAV & converted MP3 assets successfully!")

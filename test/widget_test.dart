@@ -4,6 +4,6 @@ import 'package:simple_piano_playing_app/main.dart';
 void main() {
   testWidgets('Piano App loads title smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const SimplePianoApp());
-    expect(find.text('Simple Piano'), findsOneWidget);
+    expect(find.text('88-Key Piano'), findsOneWidget);
   });
 }
