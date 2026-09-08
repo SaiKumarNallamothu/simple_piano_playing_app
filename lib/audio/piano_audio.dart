@@ -29,6 +29,7 @@ class PianoAudioService {
       _isInitialized = true;
     } catch (e) {
       debugPrint('SoLoud initialization error: $e');
+      _isInitialized = false;
     }
   }
 

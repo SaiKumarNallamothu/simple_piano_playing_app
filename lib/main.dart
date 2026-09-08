@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/piano_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +42,7 @@ class SimplePianoApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const PianoScreen(),
+      home: const SplashScreen(),
     );
   }
 }
