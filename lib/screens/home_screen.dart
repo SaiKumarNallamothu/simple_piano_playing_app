@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../theme/piano_theme.dart';
 import 'piano_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -16,21 +18,28 @@ class HomeScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF161A29),
+        backgroundColor: PianoTheme.surfaceDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+          side: BorderSide(
+            color: PianoTheme.goldAccent.withAlpha(100),
+            width: 1.2,
+          ),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.help_outline_rounded, color: Color(0xFF818CF8), size: 26),
-            SizedBox(width: 10),
+            const Icon(
+              Icons.auto_stories_rounded,
+              color: PianoTheme.goldAccent,
+              size: 24,
+            ),
+            const SizedBox(width: 10),
             Text(
               'How to Use Keyboard',
-              style: TextStyle(
+              style: PianoTheme.titleSerif.copyWith(
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
                 fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -45,9 +54,9 @@ class HomeScreen extends StatelessWidget {
                 title: 'Full 88-Key Piano',
                 description: 'Access the complete grand piano range from A0 to C8 with realistic acoustic sound samples.',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildInstructionStep(
-                icon: Icons.grid_view_rounded,
+                icon: Icons.dashboard_rounded,
                 title: '4 Playing Modes',
                 description:
                     '• Single: Scrollable 88-key layout with octave selector.\n'
@@ -55,15 +64,15 @@ class HomeScreen extends StatelessWidget {
                     '• Dual Player: Flipped top keyboard for face-to-face duets.\n'
                     '• Chords: Instant one-tap Major, Minor, 7th & Maj7 chords.',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildInstructionStep(
                 icon: Icons.lock_clock_rounded,
                 title: 'Octave Navigation & Lock',
                 description: 'Tap any Octave button (Oct 0 - Oct 7) to jump directly. Tap again to lock scrolling to that specific octave.',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildInstructionStep(
-                icon: Icons.zoom_in_rounded,
+                icon: Icons.tune_rounded,
                 title: 'Adjust Key Size & Labels',
                 description: 'Use the slider at the top bar to resize keys and press the Subtitle button to toggle note name labels.',
               ),
@@ -73,12 +82,16 @@ class HomeScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
+            style: TextButton.styleFrom(
+              foregroundColor: PianoTheme.goldAccent,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: Text(
               'Got It!',
-              style: TextStyle(
-                color: Color(0xFF818CF8),
+              style: PianoTheme.labelSans.copyWith(
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
-                fontSize: 15,
+                color: PianoTheme.goldAccent,
               ),
             ),
           ),
@@ -98,10 +111,14 @@ class HomeScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF23293E),
+            color: PianoTheme.surfaceElevated,
             borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: PianoTheme.goldAccent.withAlpha(50),
+              width: 1,
+            ),
           ),
-          child: Icon(icon, color: const Color(0xFF818CF8), size: 20),
+          child: Icon(icon, color: PianoTheme.goldAccent, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -110,19 +127,19 @@ class HomeScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: PianoTheme.bodySans.copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 description,
-                style: const TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 12,
-                  height: 1.35,
+                style: PianoTheme.bodySans.copyWith(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 11.5,
+                  height: 1.4,
                 ),
               ),
             ],
@@ -135,22 +152,14 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: PianoTheme.background,
       body: Stack(
         children: [
           // Ambient Glow Background
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 0.9,
-                  colors: [
-                    Color(0x336366F1),
-                    Color(0x111E1B4B),
-                    Color(0xFF0F111A),
-                  ],
-                ),
+                gradient: PianoTheme.backgroundGlow,
               ),
             ),
           ),
@@ -158,118 +167,185 @@ class HomeScreen extends StatelessWidget {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Header Logo & Title
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
+                    // Piano Body Inspired Central Emblem & Title Card
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(PianoTheme.radiusLarge),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF818CF8), Color(0xFF4F46E5)],
+                            color: PianoTheme.surfaceGlass,
+                            borderRadius: BorderRadius.circular(PianoTheme.radiusLarge),
+                            border: Border.all(
+                              color: PianoTheme.surfaceGlassBorder,
+                              width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF6366F1).withAlpha(120),
-                                blurRadius: 16,
-                                spreadRadius: 2,
+                                color: Colors.black.withAlpha(160),
+                                blurRadius: 24,
+                                offset: const Offset(0, 12),
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.piano_rounded,
-                            size: 36,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) => const LinearGradient(
-                                colors: [Colors.white, Color(0xFFA5B4FC)],
-                              ).createShader(bounds),
-                              child: const Text(
-                                'Simple Piano Studio',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.8,
-                                  color: Colors.white,
+                          child: Column(
+                            children: [
+                              // Gold Inlaid Piano Emblem
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: const RadialGradient(
+                                    colors: [
+                                      Color(0xFF282D3D),
+                                      Color(0xFF141722),
+                                      Color(0xFF090B10),
+                                    ],
+                                  ),
+                                  border: Border.all(
+                                    color: PianoTheme.goldAccent.withAlpha(180),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: PianoTheme.goldAccent.withAlpha(45),
+                                      blurRadius: 20,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.piano_rounded,
+                                  size: 40,
+                                  color: PianoTheme.goldAccent,
                                 ),
                               ),
-                            ),
-                            const Text(
-                              '88 Keys Acoustic Performance',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF94A3B8),
-                                fontWeight: FontWeight.w500,
+                              const SizedBox(height: 16),
+
+                              // App Title
+                              ShaderMask(
+                                shaderCallback: (bounds) => const LinearGradient(
+                                  colors: [
+                                    PianoTheme.goldLight,
+                                    PianoTheme.goldAccent,
+                                    PianoTheme.goldDeep,
+                                  ],
+                                ).createShader(bounds),
+                                child: Text(
+                                  'Simple Piano Studio',
+                                  style: PianoTheme.titleSerif.copyWith(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.2,
+                                    color: Colors.white,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 6),
+                              Text(
+                                '88 Keys Acoustic Performance',
+                                style: PianoTheme.bodySans.copyWith(
+                                  fontSize: 12.5,
+                                  color: const Color(0xFFA1A9BC),
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+
+                              const SizedBox(height: 28),
+
+                              // Action Buttons Row (Compose Piano & How to Use)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // Compose / Start Playing Button
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(PianoTheme.radiusMedium),
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          PianoTheme.goldLight,
+                                          PianoTheme.goldAccent,
+                                          PianoTheme.goldDeep,
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: PianoTheme.goldAccent.withAlpha(90),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _navigateToPiano(context),
+                                      icon: const Icon(
+                                        Icons.music_note_rounded,
+                                        size: 20,
+                                        color: Color(0xFF090A0F),
+                                      ),
+                                      label: Text(
+                                        'Compose / Play',
+                                        style: PianoTheme.labelSans.copyWith(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF090A0F),
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        foregroundColor: const Color(0xFF090A0F),
+                                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(PianoTheme.radiusMedium),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 16),
+
+                                  // How to Use Instructions Button
+                                  OutlinedButton.icon(
+                                    onPressed: () => _showHowToUseDialog(context),
+                                    icon: const Icon(
+                                      Icons.help_outline_rounded,
+                                      size: 20,
+                                      color: PianoTheme.goldAccent,
+                                    ),
+                                    label: Text(
+                                      'How to Use',
+                                      style: PianoTheme.labelSans.copyWith(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: PianoTheme.goldLight,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: BorderSide(
+                                        color: PianoTheme.goldAccent.withAlpha(140),
+                                        width: 1.2,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(PianoTheme.radiusMedium),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Action Buttons Row (Compose Piano & How to Use)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Compose / Start Playing Button
-                        ElevatedButton.icon(
-                          onPressed: () => _navigateToPiano(context),
-                          icon: const Icon(Icons.music_note_rounded, size: 22),
-                          label: const Text(
-                            'Compose / Play',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            elevation: 8,
-                            shadowColor: const Color(0xFF6366F1).withAlpha(150),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 16),
-
-                        // How to Use Instructions Button
-                        OutlinedButton.icon(
-                          onPressed: () => _showHowToUseDialog(context),
-                          icon: const Icon(Icons.help_outline_rounded, size: 22),
-                          label: const Text(
-                            'How to Use',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF818CF8),
-                            side: const BorderSide(color: Color(0xFF818CF8), width: 1.8),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

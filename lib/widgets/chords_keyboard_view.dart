@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../audio/piano_audio.dart';
+import '../theme/piano_theme.dart';
 
 class ChordDefinition {
   final String name;
@@ -92,7 +93,7 @@ class _ChordsKeyboardViewState extends State<ChordsKeyboardView> {
     final chords = _buildChords();
 
     return Container(
-      color: const Color(0xFF0F172A),
+      color: PianoTheme.background,
       padding: const EdgeInsets.all(12),
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -110,58 +111,70 @@ class _ChordsKeyboardViewState extends State<ChordsKeyboardView> {
             onTapDown: (_) => _triggerChord(chord),
             onTapUp: (_) => _releaseChord(chord),
             onTapCancel: () => _releaseChord(chord),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 80),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: isPressed
-                      ? [const Color(0xFF6366F1), const Color(0xFF4F46E5)]
-                      : [const Color(0xFF1E293B), const Color(0xFF0F172A)],
+            child: AnimatedScale(
+              scale: isPressed ? 0.97 : 1.0,
+              duration: const Duration(milliseconds: 100),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(PianoTheme.radiusMedium),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isPressed
+                        ? [
+                            PianoTheme.goldAccent,
+                            PianoTheme.goldDeep,
+                          ]
+                        : [
+                            PianoTheme.surfaceElevated,
+                            PianoTheme.surfaceDark,
+                          ],
+                  ),
+                  border: Border.all(
+                    color: isPressed ? PianoTheme.goldLight : Colors.white12,
+                    width: isPressed ? 1.5 : 0.8,
+                  ),
+                  boxShadow: isPressed
+                      ? [
+                          BoxShadow(
+                            color: PianoTheme.goldAccent.withAlpha(120),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          )
+                        ]
+                      : [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(140),
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          )
+                        ],
                 ),
-                border: Border.all(
-                  color: isPressed ? const Color(0xFF818CF8) : Colors.white10,
-                  width: isPressed ? 2 : 1,
-                ),
-                boxShadow: isPressed
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFF6366F1).withAlpha((0.6 * 255).round()),
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                        )
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withAlpha((0.3 * 255).round()),
-                          blurRadius: 4,
-                          offset: const Offset(0, 3),
-                        )
-                      ],
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      chord.name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isPressed ? Colors.white : const Color(0xFFE2E8F0),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        chord.name,
+                        style: PianoTheme.titleSerif.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isPressed ? const Color(0xFF090A0F) : Colors.white,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      chord.noteIds.map((id) => id.toUpperCase()).join(' '),
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: isPressed ? Colors.white70 : const Color(0xFF94A3B8),
+                      const SizedBox(height: 2),
+                      Text(
+                        chord.noteIds.map((id) => id.toUpperCase()).join(' '),
+                        style: PianoTheme.labelSans.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.6,
+                          color: isPressed ? const Color(0xFF2C2416) : const Color(0xFF94A3B8),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'screens/splash_screen.dart';
+import 'theme/piano_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,7 @@ void main() async {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF0F111A),
+      systemNavigationBarColor: PianoTheme.background,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
@@ -30,18 +31,9 @@ class SimplePianoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Simple Piano',
+      title: 'Grand Piano Studio',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F111A),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF6366F1),
-          secondary: Color(0xFF818CF8),
-          surface: Color(0xFF161A29),
-        ),
-        useMaterial3: true,
-      ),
+      theme: PianoTheme.darkTheme,
       home: const SplashScreen(),
     );
   }

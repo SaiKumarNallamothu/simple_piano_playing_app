@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../audio/piano_audio.dart';
+import '../theme/piano_theme.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,14 +30,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.0, 0.7, curve: Curves.easeOutCubic),
       ),
     );
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.6, 1.0, curve: Curves.easeInOut),
@@ -84,22 +85,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A), // Dark studio theme
+      backgroundColor: PianoTheme.background,
       body: Stack(
         children: [
           // Background ambient glowing aura
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment.center,
-                  radius: 0.85,
-                  colors: [
-                    Color(0x336366F1), // Soft neon indigo glow
-                    Color(0x111E1B4B),
-                    Color(0xFF0F111A),
-                  ],
-                ),
+                gradient: PianoTheme.backgroundGlow,
               ),
             ),
           ),
@@ -114,49 +107,62 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Musical Piano Icon Badge
+                      // Luxury Piano Icon Crest
                       Container(
-                        width: 100,
-                        height: 100,
+                        width: 96,
+                        height: 96,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: const LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: [
-                              Color(0xFF818CF8),
-                              Color(0xFF4F46E5),
-                              Color(0xFF312E81),
+                              Color(0xFF2E3342),
+                              Color(0xFF161821),
+                              Color(0xFF0C0E14),
                             ],
+                          ),
+                          border: Border.all(
+                            color: PianoTheme.goldAccent.withAlpha(160),
+                            width: 1.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF6366F1).withAlpha((0.6 * 255).round()),
-                              blurRadius: 28,
+                              color: PianoTheme.goldAccent.withAlpha(50),
+                              blurRadius: 32,
                               spreadRadius: 4,
-                              offset: const Offset(0, 8),
-                            )
+                              offset: const Offset(0, 4),
+                            ),
+                            BoxShadow(
+                              color: Colors.black.withAlpha(180),
+                              blurRadius: 18,
+                              offset: const Offset(0, 10),
+                            ),
                           ],
                         ),
                         child: const Icon(
                           Icons.piano_rounded,
-                          size: 54,
-                          color: Colors.white,
+                          size: 48,
+                          color: PianoTheme.goldAccent,
                         ),
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
-                      // App Title
+                      // App Title in Luxury Serif
                       ShaderMask(
                         shaderCallback: (bounds) => const LinearGradient(
-                          colors: [Colors.white, Color(0xFFA5B4FC)],
+                          colors: [
+                            PianoTheme.goldLight,
+                            PianoTheme.goldAccent,
+                            PianoTheme.goldDeep,
+                          ],
                         ).createShader(bounds),
-                        child: const Text(
-                          'Simple Piano',
-                          style: TextStyle(
+                        child: Text(
+                          'Grand Piano Studio',
+                          style: PianoTheme.titleSerif.copyWith(
                             fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.5,
                             color: Colors.white,
                           ),
                         ),
@@ -164,24 +170,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       const SizedBox(height: 8),
 
                       // Subtitle
-                      const Text(
-                        'Feel the Harmony • 88 Keys',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.8,
-                          color: Color(0xFF94A3B8),
+                      Text(
+                        'Acoustic Concert Grand • 88 Master Keys',
+                        style: PianoTheme.bodySans.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          letterSpacing: 1.8,
+                          color: const Color(0xFFB0B7C6),
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 40),
 
-                      // Subtle Loading Indicator
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
+                      // Subtle Loading Indicator with gold accent
+                      SizedBox(
+                        width: 22,
+                        height: 22,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF818CF8)),
+                          strokeWidth: 2.0,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            PianoTheme.goldAccent.withAlpha(200),
+                          ),
                         ),
                       ),
                     ],
@@ -192,17 +200,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           ),
 
           // Bottom Tagline
-          const Positioned(
+          Positioned(
             bottom: 24,
             left: 0,
             right: 0,
             child: Text(
-              'PURE ACOUSTIC EXPERIENCE',
+              'CONCERT PERFORMANCE AUDIO ENGINE',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: PianoTheme.labelSans.copyWith(
                 fontSize: 10,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2.0,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 3.0,
                 color: Colors.white24,
               ),
             ),

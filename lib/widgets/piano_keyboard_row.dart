@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/note.dart';
 import '../audio/piano_audio.dart';
+import '../theme/piano_theme.dart';
 import 'piano_key.dart';
 
 class PianoKeyboardRow extends StatefulWidget {
@@ -161,32 +162,45 @@ class _PianoKeyboardRowState extends State<PianoKeyboardRow> {
           onPointerMove: (e) => _handlePointerEvent(e, height),
           onPointerUp: (e) => _handlePointerEvent(e, height),
           onPointerCancel: (e) => _handlePointerEvent(e, height),
-          child: SingleChildScrollView(
-            controller: _activeController,
-            scrollDirection: Axis.horizontal,
-            physics: widget.isScrollable ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
-            child: SizedBox(
-              width: totalWidth,
-              height: height,
-              child: Stack(
-                children: [
-                  // Layer 1: White Keys
-                  Row(
-                    children: _whiteNotes.map((note) {
-                      final isPressed = _activeNotes.contains(note.id);
-                      return PianoKey(
-                        note: note,
-                        isPressed: isPressed,
-                        showLabel: widget.showLabels,
-                        width: widget.whiteKeyWidth,
-                        height: height,
-                      );
-                    }).toList(),
-                  ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF0C0D12),
+              borderRadius: BorderRadius.circular(PianoTheme.radiusMedium),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(200),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              controller: _activeController,
+              scrollDirection: Axis.horizontal,
+              physics: widget.isScrollable ? const ClampingScrollPhysics() : const NeverScrollableScrollPhysics(),
+              child: SizedBox(
+                width: totalWidth,
+                height: height,
+                child: Stack(
+                  children: [
+                    // Layer 1: White Keys
+                    Row(
+                      children: _whiteNotes.map((note) {
+                        final isPressed = _activeNotes.contains(note.id);
+                        return PianoKey(
+                          note: note,
+                          isPressed: isPressed,
+                          showLabel: widget.showLabels,
+                          width: widget.whiteKeyWidth,
+                          height: height,
+                        );
+                      }).toList(),
+                    ),
 
-                  // Layer 2: Black Keys
-                  ..._buildBlackKeyWidgets(widget.whiteKeyWidth, blackKeyWidth, blackKeyHeight),
-                ],
+                    // Layer 2: Black Keys
+                    ..._buildBlackKeyWidgets(widget.whiteKeyWidth, blackKeyWidth, blackKeyHeight),
+                  ],
+                ),
               ),
             ),
           ),
