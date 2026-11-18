@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:simple_piano_playing_app/main.dart';
 import 'package:simple_piano_playing_app/models/note.dart';
+import 'package:simple_piano_playing_app/screens/piano_screen.dart';
 import 'package:simple_piano_playing_app/widgets/piano_keyboard_row.dart';
 import 'package:simple_piano_playing_app/widgets/chords_keyboard_view.dart';
 
@@ -21,20 +22,36 @@ void main() {
       expect(whiteNotes.length, equals(52));
     });
 
-    testWidgets('Piano App UI loads title and mode tabs', (WidgetTester tester) async {
+    testWidgets('App loads splash, home screen buttons & opens instructions', (WidgetTester tester) async {
       await tester.pumpWidget(const SimplePianoApp());
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
+      // Verify Home Screen buttons
+      expect(find.text('Simple Piano Studio'), findsOneWidget);
+      expect(find.text('Compose / Play'), findsOneWidget);
+      expect(find.text('How to Use'), findsOneWidget);
+
+      // Tap How to Use button and verify modal
+      await tester.tap(find.text('How to Use'));
+      await tester.pumpAndSettle();
+      expect(find.text('How to Use Keyboard'), findsOneWidget);
+      expect(find.text('Full 88-Key Piano'), findsOneWidget);
+      expect(find.text('4 Playing Modes'), findsOneWidget);
+
+      // Dismiss dialog
+      await tester.tap(find.text('Got It!'));
+      await tester.pumpAndSettle();
+      expect(find.text('How to Use Keyboard'), findsNothing);
+
+      // Tap Compose / Play and enter Piano Screen
+      await tester.tap(find.text('Compose / Play'));
+      await tester.pumpAndSettle();
       expect(find.text('88-Key Piano'), findsOneWidget);
-      expect(find.text('Single'), findsOneWidget);
-      expect(find.text('Double'), findsOneWidget);
-      expect(find.text('Dual Player'), findsOneWidget);
-      expect(find.text('Chords'), findsOneWidget);
     });
 
     testWidgets('Switching modes updates UI', (WidgetTester tester) async {
-      await tester.pumpWidget(const SimplePianoApp());
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await tester.pumpWidget(const MaterialApp(home: PianoScreen()));
+      await tester.pumpAndSettle();
 
       // Switch to Double Row Mode
       await tester.tap(find.text('Double'));
@@ -55,8 +72,8 @@ void main() {
     });
 
     testWidgets('Toggling show/hide labels works', (WidgetTester tester) async {
-      await tester.pumpWidget(const SimplePianoApp());
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await tester.pumpWidget(const MaterialApp(home: PianoScreen()));
+      await tester.pumpAndSettle();
 
       final labelButton = find.byIcon(Icons.subtitles_rounded);
       expect(labelButton, findsOneWidget);
